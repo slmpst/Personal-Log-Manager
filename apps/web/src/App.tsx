@@ -8,12 +8,13 @@ import { useUiStore } from './store/useUiStore';
 import { Project, DevFile, FileType } from './types';
 import * as projectsApi from './api/projects';
 import * as filesApi from './api/files';
-import { Search, FolderOpen, Settings2 } from 'lucide-react';
+import { Search, FolderOpen, Settings2, Loader2, Check } from 'lucide-react';
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { AiChatPanel } from './components/AiChatPanel';
 import { AiKeyModal } from './components/AiKeyModal';
 import * as aiApi from './api/ai';
+import { syncManager } from './api/syncManager';
 
 
 function App() {
@@ -24,6 +25,27 @@ function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isAiChatOpen, setIsAiChatOpen] = useState(false);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+
+  const [isOnline, setIsOnline] = useState(syncManager.isOnline);
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [reloadTrigger, setReloadTrigger] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = syncManager.subscribe(setIsOnline);
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const handleSyncStatus = (e: Event) => {
+      const status = (e as CustomEvent).detail;
+      setSyncStatus(status);
+      if (status === 'success') {
+        setReloadTrigger(prev => prev + 1);
+      }
+    };
+    window.addEventListener('sync-status', handleSyncStatus);
+    return () => window.removeEventListener('sync-status', handleSyncStatus);
+  }, []);
 
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('layout_sidebar_width');
@@ -219,7 +241,7 @@ function App() {
       }
     };
     loadProjects();
-  }, [setActiveProjectId, isMobile]);
+  }, [setActiveProjectId, isMobile, reloadTrigger]);
 
   // Load files when active project changes
   useEffect(() => {
@@ -242,7 +264,7 @@ function App() {
       }
     };
     loadFiles();
-  }, [activeProjectId, setActiveFileId, isMobile]);
+  }, [activeProjectId, setActiveFileId, isMobile, reloadTrigger]);
 
   // Listen to keyboard shortcut '/'
   useEffect(() => {
@@ -346,6 +368,28 @@ function App() {
       <div className="flex h-screen w-screen bg-zinc-950 overflow-hidden text-zinc-300 relative font-sans">
         {/* Global Search Overlay Panel */}
         <SearchPanel />
+
+        {/* Connection & Sync Status Indicator */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center gap-2">
+          {!isOnline && (
+            <div className="bg-amber-955/90 border border-amber-800 text-amber-200 px-3 py-1.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5 shadow-2xl backdrop-blur-md animate-bounce">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Çevrimdışı Çalışıyorsunuz (Veriler Yerel Kaydediliyor)</span>
+            </div>
+          )}
+          {isOnline && syncStatus === 'syncing' && (
+            <div className="bg-indigo-955/90 border border-indigo-850 text-indigo-200 px-3 py-1.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5 shadow-2xl backdrop-blur-md">
+              <Loader2 size={10} className="animate-spin text-indigo-400" />
+              <span>Değişiklikler Sunucuya Eşitleniyor...</span>
+            </div>
+          )}
+          {isOnline && syncStatus === 'success' && (
+            <div className="bg-emerald-955/90 border border-emerald-850 text-emerald-200 px-3 py-1.5 rounded-full text-[10px] font-semibold flex items-center gap-1.5 shadow-2xl backdrop-blur-md animate-pulse">
+              <Check size={10} className="text-emerald-400" />
+              <span>Eşitleme Tamamlandı</span>
+            </div>
+          )}
+        </div>
 
       {error && (
         <div className="absolute top-4 right-4 bg-rose-950/90 border border-rose-800 text-rose-200 px-4 py-2.5 rounded-lg text-xs z-50 flex items-center gap-2.5 shadow-2xl backdrop-blur-md">
