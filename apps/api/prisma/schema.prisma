@@ -1,0 +1,60 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum FileType {
+  rapor
+  devlog
+  bilgiler
+  notlar
+  todo
+}
+
+model Project {
+  id        String    @id
+  name      String
+  slug      String
+  color     String
+  icon      String?
+  order     Int
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  files     DevFile[]
+
+  @@map("projects")
+}
+
+model DevFile {
+  id        String   @id
+  projectId String   @map("project_id")
+  type      FileType
+  title     String
+  content   String   @default("")
+  order     Int
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  attachments Attachment[]
+
+  @@index([projectId, order])
+  @@map("files")
+}
+
+model Attachment {
+  id        String   @id
+  fileId    String   @map("file_id")
+  name      String
+  url       String
+  size      Int
+  mimetype  String
+  createdAt DateTime @default(now()) @map("created_at")
+  file      DevFile  @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
