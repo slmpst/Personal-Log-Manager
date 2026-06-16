@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DevFile, FileType } from '../types';
 import { 
-  Plus, Pin, Search, Settings2, ChevronLeft, Calendar, Download, Sparkles, Bot
+  Plus, Pin, Search, Settings2, ChevronLeft, Calendar, Download, Sparkles, Bot, Archive, ChevronDown
 } from 'lucide-react';
 import { useUiStore } from '../store/useUiStore';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -11,7 +11,7 @@ import JSZip from 'jszip';
 interface FileListProps {
   files: DevFile[];
   onCreateFile: (type: FileType, title: string, templateContent?: string) => Promise<void>;
-  onUpdateFile: (id: string, data: { title?: string; pinned?: boolean; type?: FileType }) => Promise<void>;
+  onUpdateFile: (id: string, data: { title?: string; pinned?: boolean; type?: FileType; archived?: boolean }) => Promise<void>;
   onDeleteFile: (id: string) => Promise<void>;
   activeProjectName: string;
   onBack?: () => void;
@@ -126,6 +126,7 @@ export const FileList: React.FC<FileListProps> = ({
   const [newFileTitle, setNewFileTitle] = useState('');
   const [newFileType, setNewFileType] = useState<FileType>('notlar');
   const [selectedTemplate, setSelectedTemplate] = useState('empty');
+  const [showArchived, setShowArchived] = useState(false);
 
   // Auto-set file type when template changes
   useEffect(() => {
@@ -144,6 +145,9 @@ export const FileList: React.FC<FileListProps> = ({
     f.title.toLowerCase().includes(localSearch.toLowerCase()) ||
     FILE_TYPE_LABELS[f.type].toLowerCase().includes(localSearch.toLowerCase())
   );
+
+  const activeFilteredFiles = filteredFiles.filter(f => !f.archived);
+  const archivedFilteredFiles = filteredFiles.filter(f => f.archived);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,8 +188,8 @@ export const FileList: React.FC<FileListProps> = ({
     }
   };
 
-  const pinnedFiles = filteredFiles.filter(f => f.pinned);
-  const unpinnedFiles = filteredFiles.filter(f => !f.pinned);
+  const pinnedFiles = activeFilteredFiles.filter(f => f.pinned);
+  const unpinnedFiles = activeFilteredFiles.filter(f => !f.pinned);
 
   return (
     <div className="w-full bg-zinc-900/40 border-r border-zinc-800 flex flex-col h-full select-none">
@@ -386,6 +390,36 @@ export const FileList: React.FC<FileListProps> = ({
             )}
           </div>
         </div>
+
+        {/* Archived Files Section */}
+        {archivedFilteredFiles.length > 0 && (
+          <div className="space-y-1 mt-4 pt-4 border-t border-zinc-850/50">
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-350 hover:bg-zinc-800/10 rounded-md transition-colors cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5 uppercase font-bold tracking-wider text-[10px]">
+                <Archive size={12} className="text-zinc-650" /> Arşivlenmiş Dosyalar ({archivedFilteredFiles.length})
+              </span>
+              <ChevronDown size={14} className={`transform transition-transform ${showArchived ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {showArchived && (
+              <div className="space-y-0.5 mt-2">
+                {archivedFilteredFiles.map((file) => (
+                  <SortableFileItem
+                    key={file.id}
+                    file={file}
+                    isActive={file.id === activeFileId}
+                    onSelect={setActiveFileId}
+                    onUpdateFile={onUpdateFile}
+                    onDeleteFile={onDeleteFile}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -45,7 +45,7 @@ export const createProject = async (name: string, color: string): Promise<Projec
 
 export const updateProject = async (
   id: string,
-  data: Partial<Pick<Project, 'name' | 'color' | 'icon'>>
+  data: Partial<Pick<Project, 'name' | 'color' | 'icon' | 'archived'>>
 ): Promise<Project> => {
   if (syncManager.isOnline) {
     const updated = await apiRequest<Project>(`/projects/${id}`, {

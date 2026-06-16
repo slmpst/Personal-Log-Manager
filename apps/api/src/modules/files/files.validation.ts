@@ -25,12 +25,12 @@ export const validateUpdateFile = (
   body: any
 ): {
   error?: string;
-  data?: { title?: string; content?: string; type?: FileType; pinned?: boolean };
+  data?: { title?: string; content?: string; type?: FileType; pinned?: boolean; archived?: boolean };
 } => {
   if (!body || typeof body !== 'object') {
     return { error: 'Request body must be an object' };
   }
-  const { title, content, type, pinned } = body;
+  const { title, content, type, pinned, archived } = body;
   const data: any = {};
   if (title !== undefined) {
     if (typeof title !== 'string' || !title.trim()) {
@@ -55,6 +55,12 @@ export const validateUpdateFile = (
       return { error: 'pinned must be a boolean' };
     }
     data.pinned = pinned;
+  }
+  if (archived !== undefined) {
+    if (typeof archived !== 'boolean') {
+      return { error: 'archived must be a boolean' };
+    }
+    data.archived = archived;
   }
   return { data };
 };

@@ -22,6 +22,7 @@ model Project {
   color     String
   icon      String?
   order     Int
+  archived  Boolean   @default(false)
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   files     DevFile[]
@@ -37,6 +38,7 @@ model DevFile {
   content   String   @default("")
   order     Int
   pinned    Boolean  @default(false)
+  archived  Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)

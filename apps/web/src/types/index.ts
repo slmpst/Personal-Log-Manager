@@ -7,6 +7,7 @@ export interface Project {
   color: string;
   icon: string | null;
   order: number;
+  archived?: boolean;
   createdAt: string;
   updatedAt: string;
   fileCount?: number;
@@ -20,6 +21,7 @@ export interface DevFile {
   content: string;
   order: number;
   pinned: boolean;
+  archived?: boolean;
   createdAt: string;
   updatedAt: string;
 }

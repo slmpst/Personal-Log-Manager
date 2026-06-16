@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DevFile, FileType } from '../types';
-import { Pin, Trash2, GripVertical, FileText, Terminal, BookOpen, StickyNote, CheckSquare, Edit2 } from 'lucide-react';
+import { Pin, Trash2, GripVertical, FileText, Terminal, BookOpen, StickyNote, CheckSquare, Edit2, Archive, RotateCcw } from 'lucide-react';
 
 interface SortableFileItemProps {
   file: DevFile;
   isActive: boolean;
   onSelect: (id: string) => void;
-  onUpdateFile: (id: string, data: { title?: string; pinned?: boolean }) => void;
+  onUpdateFile: (id: string, data: { title?: string; pinned?: boolean; archived?: boolean }) => void;
   onDeleteFile: (id: string) => void;
 }
 
@@ -71,13 +71,15 @@ export const SortableFileItem: React.FC<SortableFileItemProps> = ({
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         {/* Drag Handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0"
-        >
-          <GripVertical size={13} />
-        </div>
+        {!file.archived && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300 p-0.5 rounded transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100 shrink-0"
+          >
+            <GripVertical size={13} />
+          </div>
+        )}
 
         <span className="shrink-0">{FILE_TYPE_ICONS[file.type]}</span>
         
@@ -102,8 +104,10 @@ export const SortableFileItem: React.FC<SortableFileItemProps> = ({
           <span
             className="truncate text-xs font-medium"
             onDoubleClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(true);
+              if (!file.archived) {
+                e.stopPropagation();
+                setIsEditing(true);
+              }
             }}
           >
             {file.title}
@@ -112,33 +116,60 @@ export const SortableFileItem: React.FC<SortableFileItemProps> = ({
       </div>
 
       <div className="flex items-center gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-          className="p-0.5 rounded hover:bg-zinc-700 text-zinc-500 hover:text-zinc-300 transition-colors"
-          title="Yeniden Adlandır"
-        >
-          <Edit2 size={13} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onUpdateFile(file.id, { pinned: !file.pinned });
-          }}
-          className={`p-0.5 rounded hover:bg-zinc-700 transition-colors ${
-            file.pinned ? 'text-indigo-400 opacity-100' : 'text-zinc-500 hover:text-zinc-300'
-          }`}
-        >
-          <Pin size={13} className={file.pinned ? 'fill-indigo-400/20' : ''} />
-        </button>
+        {!file.archived ? (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+              className="p-0.5 rounded hover:bg-zinc-750 text-zinc-500 hover:text-zinc-350 transition-colors cursor-pointer"
+              title="Yeniden Adlandır"
+            >
+              <Edit2 size={13} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdateFile(file.id, { pinned: !file.pinned });
+              }}
+              className={`p-0.5 rounded hover:bg-zinc-750 transition-colors cursor-pointer ${
+                file.pinned ? 'text-indigo-400 opacity-100' : 'text-zinc-500 hover:text-zinc-350'
+              }`}
+              title={file.pinned ? "Sabitlemeyi Kaldır" : "Sabitle"}
+            >
+              <Pin size={13} className={file.pinned ? 'fill-indigo-400/20' : ''} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdateFile(file.id, { archived: true, pinned: false });
+              }}
+              className="p-0.5 rounded hover:bg-zinc-750 text-zinc-500 hover:text-amber-500 transition-colors cursor-pointer"
+              title="Arşive Kaldır"
+            >
+              <Archive size={13} />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdateFile(file.id, { archived: false });
+            }}
+            className="p-0.5 rounded hover:bg-zinc-750 text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer"
+            title="Arşivden Çıkar"
+          >
+            <RotateCcw size={13} />
+          </button>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onDeleteFile(file.id);
           }}
-          className="p-0.5 rounded hover:bg-zinc-700 hover:text-red-400 text-zinc-500 transition-colors"
+          className="p-0.5 rounded hover:bg-zinc-750 hover:text-red-400 text-zinc-500 transition-colors cursor-pointer"
+          title="Sil"
         >
           <Trash2 size={13} />
         </button>

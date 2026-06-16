@@ -12,11 +12,11 @@ export const validateCreateProject = (body: any): { error?: string; data?: { nam
   return { data: { name: name.trim(), color: color.trim() } };
 };
 
-export const validateUpdateProject = (body: any): { error?: string; data?: { name?: string; color?: string; icon?: string | null } } => {
+export const validateUpdateProject = (body: any): { error?: string; data?: { name?: string; color?: string; icon?: string | null; archived?: boolean } } => {
   if (!body || typeof body !== 'object') {
     return { error: 'Request body must be an object' };
   }
-  const { name, color, icon } = body;
+  const { name, color, icon, archived } = body;
   const data: any = {};
   if (name !== undefined) {
     if (typeof name !== 'string' || !name.trim()) {
@@ -35,6 +35,12 @@ export const validateUpdateProject = (body: any): { error?: string; data?: { nam
       return { error: 'Icon must be a string or null' };
     }
     data.icon = icon;
+  }
+  if (archived !== undefined) {
+    if (typeof archived !== 'boolean') {
+      return { error: 'Archived must be a boolean' };
+    }
+    data.archived = archived;
   }
   return { data };
 };

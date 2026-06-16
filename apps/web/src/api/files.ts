@@ -45,7 +45,7 @@ export const createFile = async (projectId: string, type: FileType, title: strin
 
 export const updateFile = async (
   id: string,
-  data: Partial<Pick<DevFile, 'title' | 'content' | 'type' | 'pinned'>>
+  data: Partial<Pick<DevFile, 'title' | 'content' | 'type' | 'pinned' | 'archived'>>
 ): Promise<DevFile> => {
   if (syncManager.isOnline) {
     const updated = await apiRequest<DevFile>(`/files/${id}`, {

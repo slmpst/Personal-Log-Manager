@@ -108,9 +108,10 @@ function App() {
   // Prepopulate user's OpenAI API key if not set
   useEffect(() => {
     const defaultKey = "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";
-    const existing = localStorage.getItem('gemini_api_key');
-    if (!existing) {
+    const initialized = localStorage.getItem('gemini_api_key_initialized');
+    if (!initialized) {
       localStorage.setItem('gemini_api_key', defaultKey);
+      localStorage.setItem('gemini_api_key_initialized', 'true');
     }
   }, []);
 
@@ -295,7 +296,7 @@ function App() {
     }
   };
 
-  const handleUpdateProject = async (id: string, data: { name?: string; color?: string }) => {
+  const handleUpdateProject = async (id: string, data: { name?: string; color?: string; archived?: boolean }) => {
     try {
       await projectsApi.updateProject(id, data);
       const updated = await projectsApi.fetchProjects();
@@ -336,7 +337,7 @@ function App() {
     }
   };
 
-  const handleUpdateFile = async (id: string, data: Partial<Pick<DevFile, 'title' | 'content' | 'type' | 'pinned'>>) => {
+  const handleUpdateFile = async (id: string, data: Partial<Pick<DevFile, 'title' | 'content' | 'type' | 'pinned' | 'archived'>>) => {
     try {
       const updatedFile = await filesApi.updateFile(id, data);
       setFiles(prev => prev.map(f => f.id === id ? { ...f, ...updatedFile } : f));

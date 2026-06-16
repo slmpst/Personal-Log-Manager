@@ -37,7 +37,7 @@ export const createFile = async (projectId: string, type: FileType, title: strin
 
 export const updateFile = async (
   id: string,
-  data: { title?: string; content?: string; type?: FileType; pinned?: boolean }
+  data: { title?: string; content?: string; type?: FileType; pinned?: boolean; archived?: boolean }
 ) => {
   return prisma.devFile.update({
     where: { id },
