@@ -45,7 +45,7 @@ services:
     container_name: devlog-web
     restart: always
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     depends_on:
       - api
 
