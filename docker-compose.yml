@@ -4,9 +4,9 @@ services:
     container_name: devlog-db
     restart: always
     environment:
-      POSTGRES_USER: devlog_manager_app
-      POSTGRES_PASSWORD: dev-secret-used-only-for-local-example
-      POSTGRES_DB: devlog_manager
+      POSTGRES_USER: ${POSTGRES_USER:-devlog_manager_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-secret-used-only-for-local-example}
+      POSTGRES_DB: ${POSTGRES_DB:-devlog_manager}
     ports:
       - "5432:5432"
     volumes:
@@ -24,10 +24,10 @@ services:
     container_name: devlog-api
     restart: always
     environment:
-      NODE_ENV: production
-      PORT: 8787
-      DATABASE_URL: postgresql://devlog_manager_app:dev-secret-used-only-for-local-example@db:5432/devlog_manager?schema=public
-      CORS_ORIGIN: http://localhost:8080
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-8787}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://devlog_manager_app:dev-secret-used-only-for-local-example@db:5432/devlog_manager?schema=public}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
     ports:
       - "8787:8787"
     volumes:
@@ -41,7 +41,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_BASE_URL: http://localhost:8787/api
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8787/api}
     container_name: devlog-web
     restart: always
     ports:
