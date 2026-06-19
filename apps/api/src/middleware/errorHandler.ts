@@ -8,6 +8,7 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  console.error('[ErrorHandler] Error caught:', err);
   res.status(statusCode).json({
     message: err.message || 'Internal Server Error',
     stack: env.NODE_ENV === 'production' ? undefined : err.stack,
