@@ -305,7 +305,15 @@ export const Editor: React.FC<EditorProps> = ({
       setAiPreviewOpen(true);
     } catch (err: any) {
       console.error('AI command error:', err);
-      const isKeyError = err.message?.toLowerCase().includes('api anahtarı') || err.message?.toLowerCase().includes('api key');
+      const errorText = err.message || '';
+      const isKeyError = 
+        errorText.toLowerCase().includes('api anahtarı') || 
+        errorText.toLowerCase().includes('api key') ||
+        errorText.toLowerCase().includes('unauthorized') ||
+        errorText.toLowerCase().includes('invalid_key') ||
+        errorText.toLowerCase().includes('key not found') ||
+        errorText.toLowerCase().includes('401') ||
+        errorText.toLowerCase().includes('403');
       if (isKeyError) {
         setAiError('Yapay zeka API anahtarı bulunamadı veya geçersiz. Lütfen sağ üstteki AI ayarlarına gidin veya Ayarlar panelinden bir anahtar girin.');
       } else {

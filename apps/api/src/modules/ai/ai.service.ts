@@ -7,7 +7,23 @@ const getApiKey = (reqHeaders: Record<string, any>) => {
     tokenFromAuth = authHeader.substring(7).trim();
   }
   const userKey = tokenFromAuth || reqHeaders['x-gemini-key'];
-  return userKey || process.env.GEMINI_API_KEY || '';
+  const finalKey = userKey || process.env.GEMINI_API_KEY || '';
+
+  // Safe logging for debugging
+  console.log('[getApiKey] Headers received:', Object.keys(reqHeaders));
+  console.log('[getApiKey] User key from Auth header:', tokenFromAuth ? `present (len: ${tokenFromAuth.length})` : 'absent');
+  console.log('[getApiKey] User key from x-gemini-key:', reqHeaders['x-gemini-key'] ? `present (len: ${reqHeaders['x-gemini-key'].length})` : 'absent');
+  console.log('[getApiKey] process.env.GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? `present (len: ${process.env.GEMINI_API_KEY.length})` : 'absent');
+  if (finalKey) {
+    const masked = finalKey.length > 8 
+      ? `${finalKey.substring(0, 4)}...${finalKey.substring(finalKey.length - 4)}`
+      : '***';
+    console.log(`[getApiKey] Resolved API Key: ${masked} (total len: ${finalKey.length})`);
+  } else {
+    console.log('[getApiKey] Resolved API Key: None');
+  }
+
+  return finalKey;
 };
 
 export const callAi = async (prompt: string, reqHeaders: Record<string, any>) => {
