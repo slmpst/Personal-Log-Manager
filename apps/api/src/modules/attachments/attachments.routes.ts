@@ -23,7 +23,12 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 15 * 1024 * 1024 // 15MB limit
+  }
+});
 
 // Attachment routes
 router.get('/files/:fileId/attachments', attachmentsController.getAttachments);

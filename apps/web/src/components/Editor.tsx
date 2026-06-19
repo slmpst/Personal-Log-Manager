@@ -203,6 +203,8 @@ export const Editor: React.FC<EditorProps> = ({
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const selectionStartRef = useRef<number | null>(null);
+  const selectionEndRef = useRef<number | null>(null);
 
   const [showAiMenu, setShowAiMenu] = useState(false);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -282,7 +284,15 @@ export const Editor: React.FC<EditorProps> = ({
       const end = textarea.selectionEnd;
       if (start !== undefined && end !== undefined && start !== end) {
         selection = textarea.value.substring(start, end);
+        selectionStartRef.current = start;
+        selectionEndRef.current = end;
+      } else {
+        selectionStartRef.current = null;
+        selectionEndRef.current = null;
       }
+    } else {
+      selectionStartRef.current = null;
+      selectionEndRef.current = null;
     }
     
     setAiSelectionText(selection || null);
@@ -1098,18 +1108,11 @@ export const Editor: React.FC<EditorProps> = ({
                   <button
                     onClick={() => {
                       // Replace selected text
-                      const activeEl = document.activeElement;
-                      if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
-                        const textarea = activeEl as HTMLTextAreaElement;
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        if (start !== undefined && end !== undefined) {
-                          const newContent = content.substring(0, start) + aiResult + content.substring(end);
-                          handleContentChange(newContent);
-                        } else {
-                          const newContent = content.replace(aiSelectionText, aiResult);
-                          handleContentChange(newContent);
-                        }
+                      const start = selectionStartRef.current;
+                      const end = selectionEndRef.current;
+                      if (start !== null && end !== null) {
+                        const newContent = content.substring(0, start) + aiResult + content.substring(end);
+                        handleContentChange(newContent);
                       } else {
                         const newContent = content.replace(aiSelectionText, aiResult);
                         handleContentChange(newContent);

@@ -1,7 +1,13 @@
 import { prisma } from '../../db/prisma';
 
 const getApiKey = (reqHeaders: Record<string, any>) => {
-  return process.env.GEMINI_API_KEY || reqHeaders['x-gemini-key'] || '';
+  const authHeader = reqHeaders['authorization'];
+  let tokenFromAuth = '';
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    tokenFromAuth = authHeader.substring(7).trim();
+  }
+  const userKey = tokenFromAuth || reqHeaders['x-gemini-key'];
+  return userKey || process.env.GEMINI_API_KEY || '';
 };
 
 export const callAi = async (prompt: string, reqHeaders: Record<string, any>) => {
@@ -90,7 +96,12 @@ export const chatWithProject = async (
 
   let context = "İşte bu projedeki mevcut dosyalar:\n\n";
   files.forEach(f => {
-    context += `--- BAŞLIK: ${f.title} (Tip: ${f.type}) ---\nİçerik:\n${f.content}\n\n`;
+    const isThisActive = activeFile && f.title === activeFile.title;
+    const contentLimit = isThisActive ? 15000 : 1500;
+    const truncatedContent = f.content.length > contentLimit 
+      ? f.content.slice(0, contentLimit) + "\n[...Metin çok uzun olduğu için yapay zeka tarafından kırpıldı...]"
+      : f.content;
+    context += `--- BAŞLIK: ${f.title} (Tip: ${f.type}) ---\nİçerik:\n${truncatedContent}\n\n`;
   });
 
   if (activeFile) {
@@ -165,7 +176,10 @@ export const generateProjectSummary = async (projectId: string, reqHeaders: Reco
 
   let context = "";
   files.forEach(f => {
-    context += `--- BAŞLIK: ${f.title} (Tip: ${f.type}, Güncelleme: ${f.updatedAt}) ---\nİçerik:\n${f.content}\n\n`;
+    const truncatedContent = f.content.length > 4000
+      ? f.content.slice(0, 4000) + "\n[...Metin çok uzun olduğu için yapay zeka tarafından kırpıldı...]"
+      : f.content;
+    context += `--- BAŞLIK: ${f.title} (Tip: ${f.type}, Güncelleme: ${f.updatedAt}) ---\nİçerik:\n${truncatedContent}\n\n`;
   });
 
   const prompt = `Sen yardımcı bir yapay zeka asistanısın. Aşağıdaki proje dosyalarını (devloglar, notlar, raporlar) incele ve bu proje için profesyonel bir "Yayın Notları (Release Notes)" ve "Haftalık Güncelleme Raporu" taslağı oluştur.

@@ -95,7 +95,10 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ files }) => {
         </div>
 
         {/* Days grid */}
-        <div className="flex-1 grid grid-cols-7 grid-rows-5 min-h-0 divide-x divide-y divide-zinc-850/40">
+        <div 
+          className="flex-1 grid grid-cols-7 min-h-0 divide-x divide-y divide-zinc-850/40"
+          style={{ gridTemplateRows: `repeat(${Math.ceil(days.length / 7)}, minmax(0, 1fr))` }}
+        >
           {days.map((day, idx) => {
             const dayFiles = getFilesForDay(day);
             const isCurrentMonth = format(day, 'MM') === format(currentMonth, 'MM');

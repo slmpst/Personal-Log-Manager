@@ -23,7 +23,12 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 15 * 1024 * 1024 // 15MB limit
+  }
+});
 
 router.post('/', upload.single('file'), (req: any, res: any) => {
   if (!req.file) {

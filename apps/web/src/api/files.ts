@@ -172,7 +172,7 @@ export const searchFiles = async (q: string) => {
   });
   
   const projects = await offlineDb.getProjects();
-  const lowerQ = q.toLowerCase();
+  const lowerQ = q.trim().toLowerCase();
   
   return allFiles
     .filter(f => f.title.toLowerCase().includes(lowerQ) || f.content.toLowerCase().includes(lowerQ))

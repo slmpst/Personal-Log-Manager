@@ -116,7 +116,14 @@ export const AiChatPanel: React.FC<AiChatPanelProps> = ({
       let errorText = err.message || 'Yapay zeka yanıt veremedi.';
       
       // If error is about API key, show an explicit button
-      const isKeyError = errorText.toLowerCase().includes('api anahtarı') || errorText.toLowerCase().includes('api key');
+      const isKeyError = 
+        errorText.toLowerCase().includes('api anahtarı') || 
+        errorText.toLowerCase().includes('api key') ||
+        errorText.toLowerCase().includes('unauthorized') ||
+        errorText.toLowerCase().includes('invalid_key') ||
+        errorText.toLowerCase().includes('key not found') ||
+        errorText.toLowerCase().includes('401') ||
+        errorText.toLowerCase().includes('403');
 
       const aiErrorMessage: Message = {
         sender: 'ai',

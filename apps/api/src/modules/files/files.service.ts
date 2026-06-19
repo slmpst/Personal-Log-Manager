@@ -1,6 +1,8 @@
 import { prisma } from '../../db/prisma';
 import { FileType } from '@prisma/client';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 export const listProjectFiles = async (projectId: string) => {
   return prisma.devFile.findMany({
@@ -56,6 +58,25 @@ export const deleteFile = async (id: string) => {
   }
 
   const projectId = file.projectId;
+
+  // Find all attachments for this file
+  const attachments = await prisma.attachment.findMany({
+    where: { fileId: id },
+    select: { url: true }
+  });
+
+  // Delete physical files
+  attachments.forEach(att => {
+    try {
+      const filename = path.basename(att.url);
+      const filePath = path.join(__dirname, '../../../uploads', filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (err) {
+      console.error('Failed to delete physical file during file deletion:', err);
+    }
+  });
 
   return prisma.$transaction(async (tx) => {
     await tx.devFile.delete({

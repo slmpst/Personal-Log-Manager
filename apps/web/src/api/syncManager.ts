@@ -85,14 +85,15 @@ class SyncManager {
             const res = await filesApi.createFile(targetProjectId, payload.type, payload.title);
             if (payload.tempId) {
               idMap.set(payload.tempId, res.id);
-              // Update local cache: replace temp file id with real file id
-              const files = await offlineDb.getFilesByProject(targetProjectId);
-              const updated = files.map(f => f.id === payload.tempId ? { ...f, id: res.id, projectId: targetProjectId } : f);
-              
+              // Fetch temp file that contains offline content/edits
+              const tempFile = await offlineDb.getFile(payload.tempId);
               // Remove temp file from IndexedDB
               await offlineDb.deleteFile(payload.tempId);
-              // Save real file to IndexedDB
-              await offlineDb.saveFiles(updated);
+              // Save real file to IndexedDB with user's offline content/edits
+              const realFile = tempFile 
+                ? { ...tempFile, id: res.id, projectId: targetProjectId } 
+                : { ...res, projectId: targetProjectId };
+              await offlineDb.saveFile(realFile);
             }
           } 
           else if (action === 'update_file') {

@@ -1,4 +1,15 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8787/api';
+const getBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:8787/api`;
+  }
+  return 'http://127.0.0.1:8787/api';
+};
+
+const BASE_URL = getBaseUrl();
 
 export async function apiRequest<T>(
   path: string,

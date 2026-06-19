@@ -2,7 +2,10 @@ import { apiRequest } from './client';
 
 const getAiHeaders = (): Record<string, string> => {
   const key = localStorage.getItem('gemini_api_key') || '';
-  return key ? { 'x-gemini-key': key } : {};
+  return key ? { 
+    'x-gemini-key': key,
+    'Authorization': `Bearer ${key}`
+  } : {};
 };
 
 export const chatWithProject = (projectId: string, message: string, fileId: string | null) =>

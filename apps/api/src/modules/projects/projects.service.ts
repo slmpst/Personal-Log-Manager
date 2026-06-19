@@ -1,5 +1,7 @@
 import { prisma } from '../../db/prisma';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 const slugify = (text: string): string => {
   return text
@@ -74,6 +76,31 @@ export const updateProject = async (
 };
 
 export const deleteProject = async (id: string) => {
+  // Find all attachments for files in this project
+  const attachments = await prisma.attachment.findMany({
+    where: {
+      file: {
+        projectId: id
+      }
+    },
+    select: {
+      url: true
+    }
+  });
+
+  // Delete physical files
+  attachments.forEach(att => {
+    try {
+      const filename = path.basename(att.url);
+      const filePath = path.join(__dirname, '../../../uploads', filename);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (err) {
+      console.error('Failed to delete physical file during project deletion:', err);
+    }
+  });
+
   return prisma.project.delete({
     where: { id },
   });

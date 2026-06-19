@@ -107,7 +107,7 @@ function App() {
 
   // Prepopulate user's OpenAI API key if not set
   useEffect(() => {
-    const defaultKey = "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";
+    const defaultKey = "";
     const initialized = localStorage.getItem('gemini_api_key_initialized');
     if (!initialized) {
       localStorage.setItem('gemini_api_key', defaultKey);
@@ -123,7 +123,15 @@ function App() {
       await handleCreateFile('rapor', `AI Proje Raporu - ${dateStr}`, response.summary);
     } catch (err: any) {
       console.error('Failed to generate report:', err);
-      const isKeyError = err.message?.toLowerCase().includes('api anahtarı') || err.message?.toLowerCase().includes('api key');
+      const errorText = err.message || '';
+      const isKeyError = 
+        errorText.toLowerCase().includes('api anahtarı') || 
+        errorText.toLowerCase().includes('api key') ||
+        errorText.toLowerCase().includes('unauthorized') ||
+        errorText.toLowerCase().includes('invalid_key') ||
+        errorText.toLowerCase().includes('key not found') ||
+        errorText.toLowerCase().includes('401') ||
+        errorText.toLowerCase().includes('403');
       if (isKeyError) {
         setIsKeyModalOpen(true);
       } else {
@@ -187,6 +195,19 @@ function App() {
       if (overIdStr.startsWith('file:')) {
         const overFileIdVal = overIdStr.replace('file:', '');
         if (activeFileIdVal === overFileIdVal) return;
+
+        const activeFile = files.find((f) => f.id === activeFileIdVal);
+        const overFile = files.find((f) => f.id === overFileIdVal);
+
+        if (activeFile && overFile && activeFile.pinned !== overFile.pinned) {
+          try {
+            const updatedPinStatus = overFile.pinned;
+            activeFile.pinned = updatedPinStatus;
+            await filesApi.updateFile(activeFile.id, { pinned: updatedPinStatus });
+          } catch (pinErr: any) {
+            console.error('Failed to sync pin status during drag:', pinErr);
+          }
+        }
 
         const oldIndex = files.findIndex((f) => f.id === activeFileIdVal);
         const newIndex = files.findIndex((f) => f.id === overFileIdVal);

@@ -145,6 +145,17 @@ class OfflineDb {
     });
   }
 
+  public async getFile(id: string): Promise<any | undefined> {
+    const db = await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('files', 'readonly');
+      const store = tx.objectStore('files');
+      const req = store.get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
   public async deleteFile(id: string): Promise<void> {
     const db = await this.init();
     return new Promise((resolve, reject) => {
